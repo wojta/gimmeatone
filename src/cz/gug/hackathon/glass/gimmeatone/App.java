@@ -13,6 +13,7 @@ public class App extends Application {
 	static HashMap<String, Tone> tones = new HashMap<String, Tone>();
 	static HashMap<Tone, String> tonesRev = new HashMap<Tone, String>();
 	static ArrayList<Tone> tonesArray = new ArrayList<Tone>();
+	static ArrayList<String> toneColors = new ArrayList<String>();
 
 	@Override
 	public void onCreate() {
@@ -36,6 +37,10 @@ public class App extends Application {
 		return tonesRev;
 	}
 
+	public static ArrayList<String> getToneColors() {
+		return toneColors;
+	}
+
 	private void loadTones() throws IOException {
 		InputStream is = getAssets().open("frekvence.csv");
 		Scanner scanner = new Scanner(is);
@@ -43,10 +48,13 @@ public class App extends Application {
 		while (scanner.hasNext()) {
 			String name = scanner.next().replace("\"", "").trim();
 			String freq = scanner.next().replace("\"", "").trim();
+			String color = scanner.next().replace("\"", "").trim();
+			name = scanner.next().replace("\"", "").trim();
 			Tone tone = new Tone(Integer.valueOf(freq));
 			tones.put(name, tone);
 			tonesRev.put(tone, name);
 			tonesArray.add(tone);
+			toneColors.add(color);
 			System.out.println(name + ":" + freq);
 
 		}

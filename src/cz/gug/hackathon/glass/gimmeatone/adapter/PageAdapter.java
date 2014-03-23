@@ -20,6 +20,8 @@ public class PageAdapter extends FragmentPagerAdapter {
 		Fragment frag = new ToneFragment();
 		Bundle bundle = new Bundle();
 		bundle.putString(ToneFragment.EXTRA_TONE, App.getTonesRev().get(tone));
+		bundle.putString(ToneFragment.EXTRA_COLOR, App.getToneColors()
+				.get(arg0));
 		frag.setArguments(bundle);
 		return frag;
 	}
