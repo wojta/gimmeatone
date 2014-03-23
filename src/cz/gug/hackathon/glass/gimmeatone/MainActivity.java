@@ -22,13 +22,13 @@ public class MainActivity extends Activity {
 		player = new AudioPlayer();
 		if (intent.getExtras() != null) {
 			ArrayList<String> voiceResults = getIntent().getExtras()
-					.getStringArrayList(RecognizerIntent.EXTRA_RESULTS);
-
+					.getStringArrayList(RecognizerIntent.EXTRA_PARTIAL_RESULTS);
+			System.out.println(voiceResults);
 			TextView tvTest = (TextView) findViewById(R.id.tvTest);
 			if (voiceResults != null && !voiceResults.isEmpty())
 				tvTest.setText(voiceResults.get(0));
 		} else {
-			startActivity(new Intent(this, InstrumentActivity.class));
+			startActivity(new Intent(this, InstrumentActivity2.class));
 			finish();
 		}
 	}

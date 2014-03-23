@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="cz.gug.hackathon.glass.gimmeatone"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0" 
+    
+    >
 
     <uses-sdk
         android:minSdkVersion="15"
@@ -13,7 +15,8 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme"
-        android:name="cz.gug.hackathon.glass.gimmeatone.App" >
+        android:name="cz.gug.hackathon.glass.gimmeatone.App" 
+        >
         <activity
             android:name="cz.gug.hackathon.glass.gimmeatone.MainActivity"
             android:label="@string/app_name" >
@@ -31,6 +34,8 @@
                 android:resource="@xml/note_trigger" />
         </activity>
         <activity android:name="InstrumentActivity"></activity>
+        <activity android:name="InstrumentActivity2" 
+            android:screenOrientation="landscape"></activity>
     </application>
 
 </manifest>

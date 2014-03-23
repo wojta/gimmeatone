@@ -7,6 +7,8 @@ public class Tone {
     public Tone(int frequency) {
         this.frequency = frequency;
     }
+    
+    
 
     public Playback createPlayback() {
         return new TonePlayback();
