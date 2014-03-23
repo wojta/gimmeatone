@@ -16,7 +16,7 @@ import android.support.v4.view.ViewPager;
 import android.view.MotionEvent;
 import cz.gug.hackathon.glass.gimmeatone.adapter.PageAdapter;
 
-public class InstrumentActivity2 extends FragmentActivity {
+public class InstrumentActivity3 extends FragmentActivity {
 
 	private AudioPlayer player = new AudioPlayer();
 	private SensorManager mSensorManager;
@@ -35,7 +35,7 @@ public class InstrumentActivity2 extends FragmentActivity {
 	private double lastOrientation;
 	private int lastPos;
 	private ViewPager mPager;
-	private static final String TAG = InstrumentActivity2.class.getSimpleName();
+	private static final String TAG = InstrumentActivity3.class.getSimpleName();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -152,10 +152,10 @@ public class InstrumentActivity2 extends FragmentActivity {
 				return;
 
 			if (lastPos != pos) {
-				// mPager.setCurrentItem(pos);
+				mPager.setCurrentItem(pos);
 			}
 
-			// lastPos = pos;
+			lastPos = pos;
 			// Log.v(TAG, "O:" + pos);
 
 			mSensorChange = false;

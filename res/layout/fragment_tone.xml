@@ -13,7 +13,7 @@
         android:text="C"
         android:gravity="center"
         android:background="@drawable/tone_bk"
-        android:textSize="96sp"
+        android:textSize="64sp"
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
 </RelativeLayout>

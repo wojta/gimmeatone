@@ -25,13 +25,7 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <action android:name="com.google.android.glass.action.VOICE_TRIGGER" />
-            </intent-filter>
 
-            <meta-data
-                android:name="com.google.android.glass.VoiceTrigger"
-                android:resource="@xml/note_trigger" />
         </activity>
         <activity android:name="InstrumentActivity">
             <intent-filter>
@@ -52,6 +46,17 @@
             <meta-data
                 android:name="com.google.android.glass.VoiceTrigger"
                 android:resource="@xml/crazy_trigger" />
+        </activity>
+        <activity android:name="InstrumentActivity3"
+            android:screenOrientation="landscape">
+            
+             <intent-filter>
+                <action android:name="com.google.android.glass.action.VOICE_TRIGGER" />
+            </intent-filter>
+            
+            <meta-data
+                android:name="com.google.android.glass.VoiceTrigger"
+                android:resource="@xml/crazy_trigger2" />
         </activity>
     </application>
 
