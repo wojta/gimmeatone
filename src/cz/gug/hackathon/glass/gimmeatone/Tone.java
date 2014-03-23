@@ -1,5 +1,6 @@
 package cz.gug.hackathon.glass.gimmeatone;
 
+
 public class Tone {
 
     private int frequency;
@@ -13,12 +14,10 @@ public class Tone {
     private void buildWaveBuffer() {
         waveBuffer = new short[AudioPlayer.SAMPLE_RATE / frequency];
         for (int i = 0; i < waveBuffer.length; i++) {
-            double phase = 2 * Math.PI * i / (AudioPlayer.SAMPLE_RATE / frequency);
-            waveBuffer[i] = (short) (Math.sin(phase) * Short.MAX_VALUE);
+            double phase = 2.0 * Math.PI * i * frequency / (double) AudioPlayer.SAMPLE_RATE;
+            waveBuffer[i] = (short) (Math.sin(phase) * (Short.MAX_VALUE - 1));
         }
     }
-    
-    
 
     public Playback createPlayback() {
         return new TonePlayback();
@@ -28,7 +27,7 @@ public class Tone {
         private int position;
         @Override
         public void fillBuffer(short[] buffer) {
-            for (int i = 0; i < buffer.length / 2; i++) {
+            for (int i = 0; i < buffer.length; i++) {
                 buffer[i] = waveBuffer[(i + position) % waveBuffer.length];
             }
             position += (position + buffer.length) % waveBuffer.length;

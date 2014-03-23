@@ -13,7 +13,7 @@ public class AudioPlayer {
     public static final int SAMPLE_RATE = 44100;
     public static final int OUTPUT_CHANNELS = AudioFormat.CHANNEL_OUT_MONO;
     public static final int AUDIO_FORMAT = AudioFormat.ENCODING_PCM_16BIT;
-    public static final int BUFFER_SIZE = SAMPLE_RATE * AUDIO_FORMAT / 100; // ~20ms
+    public static final int BUFFER_SIZE = 10000;
                                                                             // latency
 
     private volatile boolean playing = false;
@@ -96,7 +96,10 @@ public class AudioPlayer {
 
         private void mergeSampleBuffer() {
             for (int i = 0; i < sampleBuffer.length; i++) {
-                mergeBuffer[i] = (short) (sampleBuffer[i] / 20); // Normalization
+                int mergedSample = mergeBuffer[i] + (sampleBuffer[i] / 10);
+                mergeBuffer[i] = (short) (
+                        mergedSample > Short.MAX_VALUE ? Short.MAX_VALUE :
+                            (mergedSample < Short.MIN_VALUE ? Short.MIN_VALUE : mergedSample));
             }
         }
 
