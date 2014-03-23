@@ -14,7 +14,7 @@ public class Tone {
     private void buildWaveBuffer() {
         waveBuffer = new short[AudioPlayer.SAMPLE_RATE / frequency];
         for (int i = 0; i < waveBuffer.length; i++) {
-            double phase = 2.0 * Math.PI * i * frequency / (double) AudioPlayer.SAMPLE_RATE;
+            double phase = 2.0D * Math.PI * i * (double) frequency / AudioPlayer.SAMPLE_RATE;
             waveBuffer[i] = (short) (Math.sin(phase) * (Short.MAX_VALUE - 1));
         }
     }
