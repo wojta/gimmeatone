@@ -30,7 +30,15 @@
                 android:name="com.google.android.glass.VoiceTrigger"
                 android:resource="@xml/note_trigger" />
         </activity>
-        <activity android:name="InstrumentActivity"></activity>
+        <activity android:name="InstrumentActivity">
+            <intent-filter>
+                <action android:name="com.google.android.glass.action.VOICE_TRIGGER" />
+            </intent-filter>
+
+            <meta-data
+                android:name="com.google.android.glass.VoiceTrigger"
+                android:resource="@xml/play_trigger" />
+        </activity>
     </application>
 
 </manifest>

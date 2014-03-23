@@ -1,6 +1,8 @@
 package cz.gug.hackathon.glass.gimmeatone;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import android.media.AudioFormat;
 import android.media.AudioManager;
@@ -23,7 +25,7 @@ public class AudioPlayer {
     private short[] sampleBuffer = new short[BUFFER_SIZE / 2];
     private short[] mergeBuffer = new short[BUFFER_SIZE / 2];
 
-    private Playback playback;
+    private Set<Playback> playbacks = new HashSet<Playback>();
 
     public void play() {
         if (playing) {
@@ -44,7 +46,22 @@ public class AudioPlayer {
     }
 
     public void changeTone(Tone tone) {
-        this.playback = tone.createPlayback();
+        synchronized (playbacks) {
+            playbacks.clear();
+            playbacks.add(tone.createPlayback());
+        }
+    }
+
+    public void addPlayback(Playback playback) {
+        synchronized (playbacks) {
+            playbacks.add(playback);
+        }
+    }
+
+    public void removePlayback(Playback playback) {
+        synchronized (playback) {
+            playbacks.remove(playback);
+        }
     }
 
     public boolean isPlaying() {
@@ -55,9 +72,15 @@ public class AudioPlayer {
         @Override
         public void run() {
             while (playing) {
+                Playback[] currentPlaybacks;
+                synchronized (playbacks) {
+                    currentPlaybacks = playbacks.toArray(new Playback[playbacks.size()]);
+                }
                 Arrays.fill(mergeBuffer, (short) 0);
-                fillSampleBuffer(AudioPlayer.this.playback);
-                mergeSampleBuffer();
+                for (Playback playback : currentPlaybacks) {
+                    fillSampleBuffer(playback);
+                    mergeSampleBuffer();
+                }
                 convertAudioBuffer();
                 track.write(audioBuffer, 0, audioBuffer.length);
             }
@@ -73,7 +96,7 @@ public class AudioPlayer {
 
         private void mergeSampleBuffer() {
             for (int i = 0; i < sampleBuffer.length; i++) {
-                mergeBuffer[i] = (short) (sampleBuffer[i] / 4); // Normalization
+                mergeBuffer[i] = (short) (sampleBuffer[i] / 20); // Normalization
             }
         }
 

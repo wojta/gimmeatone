@@ -3,9 +3,19 @@ package cz.gug.hackathon.glass.gimmeatone;
 public class Tone {
 
     private int frequency;
+    private short[] waveBuffer;
 
     public Tone(int frequency) {
         this.frequency = frequency;
+        buildWaveBuffer();
+    }
+
+    private void buildWaveBuffer() {
+        waveBuffer = new short[AudioPlayer.SAMPLE_RATE / frequency];
+        for (int i = 0; i < waveBuffer.length; i++) {
+            double phase = 2 * Math.PI * i / (AudioPlayer.SAMPLE_RATE / frequency);
+            waveBuffer[i] = (short) (Math.sin(phase) * Short.MAX_VALUE);
+        }
     }
 
     public Playback createPlayback() {
@@ -13,15 +23,13 @@ public class Tone {
     }
 
     private class TonePlayback implements Playback {
-        private long position;
+        private int position;
         @Override
         public void fillBuffer(short[] buffer) {
             for (int i = 0; i < buffer.length / 2; i++) {
-                double phase = 2 * Math.PI * (i + position) / (AudioPlayer.SAMPLE_RATE / frequency);
-                short sample = (short) (Math.sin(phase) * Short.MAX_VALUE);
-                sample = (short) (sample / 100);
+                buffer[i] = waveBuffer[(i + position) % waveBuffer.length];
             }
-            position += buffer.length / 2;
+            position += (position + buffer.length) % waveBuffer.length;
         }
     }
 
