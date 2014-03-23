@@ -17,12 +17,11 @@ public class Tone {
     private class TonePlayback implements Playback {
         private long position;
         @Override
-        public void fillBuffer(byte[] buffer) {
+        public void fillBuffer(short[] buffer) {
             for (int i = 0; i < buffer.length / 2; i++) {
                 double phase = 2 * Math.PI * (i + position) / (AudioPlayer.SAMPLE_RATE / frequency);
                 short sample = (short) (Math.sin(phase) * Short.MAX_VALUE);
-                buffer[2 * i] = (byte) (sample & 0x00ff);
-                buffer[2 * i + 1] = (byte) ((sample & 0xff00) >>> 8);
+                sample = (short) (sample / 100);
             }
             position += buffer.length / 2;
         }
