@@ -17,6 +17,8 @@ public class Tone {
             waveBuffer[i] = (short) (Math.sin(phase) * Short.MAX_VALUE);
         }
     }
+    
+    
 
     public Playback createPlayback() {
         return new TonePlayback();

@@ -2,6 +2,7 @@ package cz.gug.hackathon.glass.gimmeatone;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -9,7 +10,9 @@ import android.app.Application;
 
 public class App extends Application {
 
-	HashMap<String, Tone> tones = new HashMap<String, Tone>();
+	static HashMap<String, Tone> tones = new HashMap<String, Tone>();
+	static HashMap<Tone, String> tonesRev = new HashMap<Tone, String>();
+	static ArrayList<Tone> tonesArray = new ArrayList<Tone>();
 
 	@Override
 	public void onCreate() {
@@ -21,8 +24,16 @@ public class App extends Application {
 		}
 	}
 
-	public HashMap<String, Tone> getTones() {
+	static public HashMap<String, Tone> getTones() {
 		return tones;
+	}
+
+	public static ArrayList<Tone> getTonesArray() {
+		return tonesArray;
+	}
+
+	public static HashMap<Tone, String> getTonesRev() {
+		return tonesRev;
 	}
 
 	private void loadTones() throws IOException {
@@ -34,6 +45,8 @@ public class App extends Application {
 			String freq = scanner.next().replace("\"", "").trim();
 			Tone tone = new Tone(Integer.valueOf(freq));
 			tones.put(name, tone);
+			tonesRev.put(tone, name);
+			tonesArray.add(tone);
 			System.out.println(name + ":" + freq);
 
 		}
