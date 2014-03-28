@@ -1,40 +1,28 @@
 package cz.gug.hackathon.glass.gimmeatone;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import cz.gug.hackathon.glass.gimmeatone.audio.AudioPlayer;
-import cz.gug.hackathon.glass.gimmeatone.audio.AudioSource;
-import cz.gug.hackathon.glass.gimmeatone.audio.EnvelopedSource;
-import cz.gug.hackathon.glass.gimmeatone.audio.ToneGenerator;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.MotionEvent;
+import cz.gug.hackathon.glass.gimmeatone.audio.AudioPlayer;
+import cz.gug.hackathon.glass.gimmeatone.audio.AudioSource;
+import cz.gug.hackathon.glass.gimmeatone.audio.EnvelopedSource;
+import cz.gug.hackathon.glass.gimmeatone.audio.WaveGenerator;
 
 public class InstrumentActivity extends Activity {
 
-    private static List<ToneGenerator> tones = new ArrayList<ToneGenerator>();
-
-    static {
-        tones.add(new ToneGenerator(262)); // C
-        tones.add(new ToneGenerator(277)); // C#
-        tones.add(new ToneGenerator(294)); // D
-        tones.add(new ToneGenerator(311)); // D#
-        tones.add(new ToneGenerator(330)); // E
-        tones.add(new ToneGenerator(349)); // F
-        tones.add(new ToneGenerator(370)); // F#
-        tones.add(new ToneGenerator(392)); // G
-        tones.add(new ToneGenerator(416)); // G#
-        tones.add(new ToneGenerator(440)); // A
-        tones.add(new ToneGenerator(466)); // A#
-        tones.add(new ToneGenerator(494)); // H
-    }
+    private static int[] TONE_FREQUENCIES = new int[] {
+        262 /* C */, 277 /* C# */, 294 /* D */, 311 /* D# */, 330 /* E */,
+        349 /* F */, 370 /* F# */, 392 /* G */, 416 /* G# */, 440 /* A */,
+        466 /* A# */, 494 /* H */
+    };
 
     private AudioPlayer player = new AudioPlayer(false);
     @SuppressLint("UseSparseArrays")
-    private Map<Integer, EnvelopedSource> sources = new HashMap<Integer, EnvelopedSource>();
+    private Map<Integer, SourceHolder> sources = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,55 +31,87 @@ public class InstrumentActivity extends Activity {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        onGenericMotionEvent(event); // Route TOUCH to GENERIC MOTION to allow testing on touch devices
+        onGenericMotionEvent(event); // Route thtough GENERIC MOTION to allow testing
         return super.onTouchEvent(event);
     }
 
     @Override
     public boolean onGenericMotionEvent(MotionEvent event) {
-        // Get pointer index and identifier
-        int pointerIdx = event.getActionIndex();
-        int pointerId = event.getPointerId(pointerIdx);
-        // Process motion event
-        if (event.getAction() == MotionEvent.ACTION_DOWN ||
-                event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
-            startPlaying(pointerId, getToneForPointer(event.getAxisValue(0, pointerIdx)));
-        } else if (event.getAction() == MotionEvent.ACTION_UP ||
-                event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) {
-            stopPlaying(pointerId);
-        }
-        // Start the player if needed
-        if (!sources.isEmpty() && !player.isPlaying()) {
-            player.play();
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            startPlaying(event);
+        } else if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
+            startPlaying(event);
+        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            stopPlaying(event.getPointerId(event.getActionIndex()));
+        } else if (event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) {
+            stopPlaying(event.getPointerId(event.getActionIndex()));
+        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            shiftTone(event);
         }
         return super.onGenericMotionEvent(event);
     }
 
     /**
-     * Convert pointer X-coordinate into a tone instance.
+     * Shift playing tone's frequency.
      */
-    private ToneGenerator getToneForPointer(float coordinate) {
-        int position = Math.min((int) (coordinate / 120 + 1), tones.size() - 1);
-        System.out.println("TONE: " + position);
-        return tones.get(position);
-    }
-
-    private void startPlaying(int id, AudioSource source) {
-        if (sources.containsKey(id)) {
-            stopPlaying(id);
+    private void shiftTone(MotionEvent event) {
+        // Check the history size
+        if (event.getHistorySize() == 0) {
+            return;
         }
-        EnvelopedSource envelopedSource = new EnvelopedSource(source);
-        sources.put(id, envelopedSource);
-        player.addSource(envelopedSource);
+        // Go through the pointers and apply pitch shift
+        for (int pointerIdx = 0; pointerIdx < event.getPointerCount(); pointerIdx++) {
+            int pointerId = event.getPointerId(pointerIdx);
+            // Get the shift from relative movement
+            double shift = event.getAxisValue(0, pointerIdx) - event.getHistoricalAxisValue(0, pointerIdx, 0);
+            // Shift frequency of the wave generator
+            SourceHolder holder = sources.get(pointerId);
+            if (holder != null) {
+                holder.shift((int) shift);
+            }
+        }
     }
 
+    /**
+     * Start playing a new sound (POINTER_DOWN).
+     */
+    private void startPlaying(MotionEvent event) {
+        int pointerIdx = event.getActionIndex();
+        int pointerId = event.getPointerId(pointerIdx);
+        // Stop playing sound with the same identifier
+        if (sources.containsKey(pointerId)) {
+            stopPlaying(pointerId);
+        }
+        // Start playing new sound
+        SourceHolder holder = new SourceHolder(getFrequencyForPointer(event.getAxisValue(0, pointerIdx)));
+        sources.put(pointerId, holder);
+        player.addSource(holder.getSource());
+        // Start the player if needed
+        if (!player.isPlaying()) {
+            player.play();
+        }
+    }
+
+    /**
+     * Convert pointer X-coordinate into a frequency.
+     */
+    private int getFrequencyForPointer(float coordinate) {
+        return TONE_FREQUENCIES[Math.min((int) (coordinate / 65), TONE_FREQUENCIES.length - 1)];
+    }
+
+    /**
+     * Stop playing sound with the given identifier.
+     */
     private void stopPlaying(int id) {
-        EnvelopedSource source = sources.remove(id);
-        if (source != null) {
-            source.stop();
+        SourceHolder holder = sources.remove(id);
+        if (holder != null) {
+            holder.stop();
         }
     }
 
+    /**
+     * Stop the playback completely.
+     */
     private void stopPlayback() {
         sources.clear();
         player.stop();
@@ -102,6 +122,36 @@ public class InstrumentActivity extends Activity {
     protected void onPause() {
         stopPlayback();
         super.onPause();
+    }
+
+    //~ Internal Classes
+
+    private static class SourceHolder {
+
+        private final int frequency;
+        private final WaveGenerator wave;
+        private final EnvelopedSource<?> enveloped;
+
+        private int shift;
+
+        public SourceHolder(int frequency) {
+            this.frequency = frequency;
+            this.wave = new WaveGenerator(frequency);
+            this.enveloped = new EnvelopedSource<AudioSource>(wave);
+        }
+
+        public void shift(int amount) {
+            wave.changeFrequency((shift += amount) + frequency);
+        }
+
+        public AudioSource getSource() {
+            return enveloped;
+        }
+
+        public void stop() {
+            enveloped.stop();
+        }
+
     }
 
 }
