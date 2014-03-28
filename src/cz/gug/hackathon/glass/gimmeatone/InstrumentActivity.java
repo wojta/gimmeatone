@@ -68,6 +68,7 @@ public class InstrumentActivity extends Activity {
             SourceHolder holder = sources.get(pointerId);
             if (holder != null) {
                 holder.shift((int) shift);
+                holder.effect(getEffectForPointer(event.getAxisValue(1, pointerIdx)));
             }
         }
     }
@@ -83,7 +84,9 @@ public class InstrumentActivity extends Activity {
             stopPlaying(pointerId);
         }
         // Start playing new sound
-        SourceHolder holder = new SourceHolder(getFrequencyForPointer(event.getAxisValue(0, pointerIdx)));
+        SourceHolder holder = new SourceHolder(
+                getFrequencyForPointer(event.getAxisValue(0, pointerIdx)),
+                getEffectForPointer(event.getAxisValue(1, pointerIdx)));
         sources.put(pointerId, holder);
         player.addSource(holder.getSource());
         // Start the player if needed
@@ -97,6 +100,14 @@ public class InstrumentActivity extends Activity {
      */
     private int getFrequencyForPointer(float coordinate) {
         return TONE_FREQUENCIES[Math.min((int) (coordinate / 65), TONE_FREQUENCIES.length - 1)];
+    }
+
+    /**
+     * Get effect value for Y-coordinate.
+     */
+    private double getEffectForPointer(float coordinate) {
+        double effect = 1.0 * (coordinate - 80) / 500;
+        return effect < 0 ? 0 : (effect > 1 ? 1 : effect);
     }
 
     /**
@@ -134,16 +145,21 @@ public class InstrumentActivity extends Activity {
 
         private int shift;
 
-        public SourceHolder(int frequency) {
+        public SourceHolder(int frequency, double effect) {
             this.frequency = frequency;
             this.wave = new WaveGenerator(frequency);
             this.enveloped = new EnvelopedSource<AudioSource>(wave);
+            this.effect(effect);
         }
 
         public void shift(int amount) {
             if (shift + amount + frequency > 20) { // No need to go deeper than 20
                 wave.changeFrequency((shift += amount) + frequency);
             }
+        }
+
+        public void effect(double effect) {
+            wave.changeEffect(effect);
         }
 
         public AudioSource getSource() {

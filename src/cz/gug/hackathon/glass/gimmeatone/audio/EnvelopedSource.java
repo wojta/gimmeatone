@@ -6,7 +6,7 @@ package cz.gug.hackathon.glass.gimmeatone.audio;
 public class EnvelopedSource<T extends AudioSource> implements AudioSource {
 
     private static final double ATTACK_STEP = 1.0 / AudioPlayer.SAMPLE_RATE / 0.005;
-    private static final double RELEASE_STEP = 1.0 / AudioPlayer.SAMPLE_RATE / 0.05;
+    private static final double RELEASE_STEP = 1.0 / AudioPlayer.SAMPLE_RATE / 0.01;
 
     private final T source;
 
