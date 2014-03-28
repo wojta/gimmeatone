@@ -141,7 +141,9 @@ public class InstrumentActivity extends Activity {
         }
 
         public void shift(int amount) {
-            wave.changeFrequency((shift += amount) + frequency);
+            if (shift + amount + frequency > 20) { // No need to go deeper than 20
+                wave.changeFrequency((shift += amount) + frequency);
+            }
         }
 
         public AudioSource getSource() {
