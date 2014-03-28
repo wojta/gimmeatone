@@ -4,100 +4,104 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import cz.gug.hackathon.glass.gimmeatone.audio.AudioPlayer;
+import cz.gug.hackathon.glass.gimmeatone.audio.AudioSource;
+import cz.gug.hackathon.glass.gimmeatone.audio.EnvelopedSource;
+import cz.gug.hackathon.glass.gimmeatone.audio.ToneGenerator;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.MotionEvent;
 
 public class InstrumentActivity extends Activity {
 
-	private static List<Tone> tones = new ArrayList<Tone>();
+    private static List<ToneGenerator> tones = new ArrayList<ToneGenerator>();
 
-	static {
-		tones.add(new Tone(262)); // C
-		tones.add(new Tone(277)); // C#
-		tones.add(new Tone(294)); // D
-		tones.add(new Tone(311)); // D#
-		tones.add(new Tone(330)); // E
-		tones.add(new Tone(349)); // F
-		tones.add(new Tone(370)); // F#
-		tones.add(new Tone(392)); // G
-		tones.add(new Tone(416)); // G#
-		tones.add(new Tone(440)); // A
-		tones.add(new Tone(466)); // A#
-		tones.add(new Tone(494)); // H
-	}
+    static {
+        tones.add(new ToneGenerator(262)); // C
+        tones.add(new ToneGenerator(277)); // C#
+        tones.add(new ToneGenerator(294)); // D
+        tones.add(new ToneGenerator(311)); // D#
+        tones.add(new ToneGenerator(330)); // E
+        tones.add(new ToneGenerator(349)); // F
+        tones.add(new ToneGenerator(370)); // F#
+        tones.add(new ToneGenerator(392)); // G
+        tones.add(new ToneGenerator(416)); // G#
+        tones.add(new ToneGenerator(440)); // A
+        tones.add(new ToneGenerator(466)); // A#
+        tones.add(new ToneGenerator(494)); // H
+    }
 
-	private AudioPlayer player = new AudioPlayer();
-	private Map<Integer, Playback> playbacks = new HashMap<Integer, Playback>();
+    private AudioPlayer player = new AudioPlayer(false);
+    @SuppressLint("UseSparseArrays")
+    private Map<Integer, EnvelopedSource> sources = new HashMap<Integer, EnvelopedSource>();
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-	}
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
 
-	@Override
-	public boolean onGenericMotionEvent(MotionEvent event) {
-		int pointerIdx = event.getActionIndex();
-		int pointerId = event.getPointerId(pointerIdx);
-		if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			playTone(pointerId,
-					getToneForPointer(event.getAxisValue(0, pointerIdx)));
-		} else if (event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
-			playTone(pointerId,
-					getToneForPointer(event.getAxisValue(0, pointerIdx)));
-		} else if (event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) {
-			stopPlaying(pointerId);
-		} else if (event.getAction() == MotionEvent.ACTION_UP) {
-			stopPlayback();
-		}
-		if (!playbacks.isEmpty() && !player.isPlaying()) {
-			player.play();
-		} else if (playbacks.isEmpty() && player.isPlaying()) {
-			player.stop();
-		}
-		return super.onGenericMotionEvent(event);
-	}
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        onGenericMotionEvent(event); // Route TOUCH to GENERIC MOTION to allow testing on touch devices
+        return super.onTouchEvent(event);
+    }
 
-	private Tone getToneForPointer(float coordinate) {
-		int position = Math.min((int) (coordinate / 120 + 1), tones.size() - 1);
-		System.out.println("TONE: " + position);
-		return tones.get(position);
-	}
+    @Override
+    public boolean onGenericMotionEvent(MotionEvent event) {
+        // Get pointer index and identifier
+        int pointerIdx = event.getActionIndex();
+        int pointerId = event.getPointerId(pointerIdx);
+        // Process motion event
+        if (event.getAction() == MotionEvent.ACTION_DOWN ||
+                event.getActionMasked() == MotionEvent.ACTION_POINTER_DOWN) {
+            startPlaying(pointerId, getToneForPointer(event.getAxisValue(0, pointerIdx)));
+        } else if (event.getAction() == MotionEvent.ACTION_UP ||
+                event.getActionMasked() == MotionEvent.ACTION_POINTER_UP) {
+            stopPlaying(pointerId);
+        }
+        // Start the player if needed
+        if (!sources.isEmpty() && !player.isPlaying()) {
+            player.play();
+        }
+        return super.onGenericMotionEvent(event);
+    }
 
-	private void playTone(int id, Tone tone) {
-		if (playbacks.containsKey(id)) {
-			stopPlaying(id);
-		}
-		playbacks.put(id, tone.createPlayback());
-		player.addPlayback(playbacks.get(id));
-		logStats();
-	}
+    /**
+     * Convert pointer X-coordinate into a tone instance.
+     */
+    private ToneGenerator getToneForPointer(float coordinate) {
+        int position = Math.min((int) (coordinate / 120 + 1), tones.size() - 1);
+        System.out.println("TONE: " + position);
+        return tones.get(position);
+    }
 
-	private void stopPlaying(int id) {
-		Playback playback = playbacks.get(id);
-		if (playback != null) {
-			player.removePlayback(playback);
-		}
-		logStats();
-	}
+    private void startPlaying(int id, AudioSource source) {
+        if (sources.containsKey(id)) {
+            stopPlaying(id);
+        }
+        EnvelopedSource envelopedSource = new EnvelopedSource(source);
+        sources.put(id, envelopedSource);
+        player.addSource(envelopedSource);
+    }
 
-	private void stopPlayback() {
-		for (Playback playback : playbacks.values()) {
-			player.removePlayback(playback);
-		}
-		playbacks.clear();
-		player.stop();
-	}
+    private void stopPlaying(int id) {
+        EnvelopedSource source = sources.remove(id);
+        if (source != null) {
+            source.stop();
+        }
+    }
 
-	@Override
-	protected void onPause() {
-		stopPlayback();
-		super.onPause();
-	}
+    private void stopPlayback() {
+        sources.clear();
+        player.stop();
+        player.changeSources();
+    }
 
-	private void logStats() {
-		System.out.println("SAMPLES: " + playbacks.size());
-	}
+    @Override
+    protected void onPause() {
+        stopPlayback();
+        super.onPause();
+    }
 
 }

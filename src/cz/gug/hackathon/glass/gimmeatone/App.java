@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Scanner;
 
+import cz.gug.hackathon.glass.gimmeatone.audio.ToneGenerator;
 import android.app.Application;
 
 public class App extends Application {
 
-	static HashMap<String, Tone> tones = new HashMap<String, Tone>();
-	static HashMap<Tone, String> tonesRev = new HashMap<Tone, String>();
-	static ArrayList<Tone> tonesArray = new ArrayList<Tone>();
+	static HashMap<String, ToneGenerator> tones = new HashMap<String, ToneGenerator>();
+	static HashMap<ToneGenerator, String> tonesRev = new HashMap<ToneGenerator, String>();
+	static ArrayList<ToneGenerator> tonesArray = new ArrayList<ToneGenerator>();
 	static ArrayList<String> toneColors = new ArrayList<String>();
 
 	@Override
@@ -25,15 +26,15 @@ public class App extends Application {
 		}
 	}
 
-	static public HashMap<String, Tone> getTones() {
+	static public HashMap<String, ToneGenerator> getTones() {
 		return tones;
 	}
 
-	public static ArrayList<Tone> getTonesArray() {
+	public static ArrayList<ToneGenerator> getTonesArray() {
 		return tonesArray;
 	}
 
-	public static HashMap<Tone, String> getTonesRev() {
+	public static HashMap<ToneGenerator, String> getTonesRev() {
 		return tonesRev;
 	}
 
@@ -50,7 +51,7 @@ public class App extends Application {
 			String freq = scanner.next().replace("\"", "").trim();
 			String color = scanner.next().replace("\"", "").trim();
 			name = scanner.next().replace("\"", "").trim();
-			Tone tone = new Tone(Integer.valueOf(freq));
+			ToneGenerator tone = new ToneGenerator(Integer.valueOf(freq));
 			tones.put(name, tone);
 			tonesRev.put(tone, name);
 			tonesArray.add(tone);
